@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Hide and Beep - Location Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 2rem;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-secondary {
+            background: #6b7280;
+        }
+
+        .button-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .button-success {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
+
+        .button-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .player-item.hunter {
+            background: #fee;
+            border: 2px solid #ef4444;
+        }
+
+        .player-name {
+            flex: 1;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .badge {
+            background: #ef4444;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .status-active { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+        .status-inactive { background: #6b7280; }
+
+        .countdown-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 3px solid #f59e0b;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .countdown-time {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #d97706;
+            margin: 10px 0;
+        }
+
+        .countdown-label {
+            color: #92400e;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .proximity-box {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border: 3px solid #22c55e;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .proximity-distance {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #15803d;
+            margin: 10px 0;
+        }
+
+        .proximity-status {
+            color: #166534;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .beep-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .beep-dot {
+            width: 15px;
+            height: 15px;
+            background: rgba(34, 197, 94, 0.3);
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .beep-dot.active {
+            background: #22c55e;
+            box-shadow: 0 0 15px #22c55e;
+            transform: scale(1.5);
+        }
+
+        .location-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f0f9ff;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .checkbox-item:hover {
+            background: #f3f4f6;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .countdown-time {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="card">
+            <div class="logo">📍</div>
+            <h1>Hide and Beep</h1>
+            <p class="subtitle">Location-Based Hide and Seek</p>
+            
+            <input type="text" id="usernameInput" class="input-field" placeholder="Enter your username" />
+            <button class="button" onclick="registerUser()">Register & Play</button>
+            
+            <div class="alert alert-info" style="margin-top: 20px;">
+                <strong>📱 Requirements:</strong><br>
+                • Location services enabled<br>
+                • HTTPS connection<br>
+                • Modern mobile browser
+            </div>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="homeScreen" class="card hidden">
+            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
+                <div class="player-avatar" id="userAvatar"></div>
+                <div style="flex: 1;">
+                    <h2 style="margin: 0;" id="userName"></h2>
+                    <div class="location-status">
+                        <span>GPS Status:</span>
+                        <span id="gpsStatus">⏳ Checking...</span>
+                    </div>
+                </div>
+            </div>
+
+            <h2>Create Game Group</h2>
+            <input type="text" id="groupName" class="input-field" placeholder="Group name (e.g., My Game)" />
+            
+            <div style="background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                <strong style="display: block; margin-bottom: 10px; color: #666;">Invite Friends:</strong>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="player1" checked />
+                    <label for="player1">Alice</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="player2" checked />
+                    <label for="player2">Bob</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="player3" />
+                    <label for="player3">Charlie</label>
+                </div>
+            </div>
+
+            <button class="button" onclick="createGroup()">Create Group</button>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobbyScreen" class="card hidden">
+            <h2 id="lobbyTitle">Game Lobby</h2>
+            
+            <div id="playersList"></div>
+
+            <div id="hunterSelection" class="hidden">
+                <div class="alert alert-info">Select who will be the hunter:</div>
+                <div id="hunterButtons" class="button-row"></div>
+            </div>
+
+            <div id="gameControls" class="hidden">
+                <div class="alert alert-success">Hunter selected! Choose hiding time:</div>
+                <div class="button-row">
+                    <button class="button button-success" onclick="startGame(1)">⏰ 1 min</button>
+                    <button class="button button-success" onclick="startGame(2)">⏰ 2 min</button>
+                    <button class="button button-success" onclick="startGame(5)">⏰ 5 min</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Game Screen -->
+        <div id="gameScreen" class="card hidden">
+            <h2 id="gameTitle">Game Active</h2>
+
+            <!-- Countdown Phase -->
+            <div id="countdownPhase" class="hidden">
+                <div class="countdown-box">
+                    <div class="countdown-label">🏃 Time to Hide!</div>
+                    <div class="countdown-time" id="countdownTimer">0:00</div>
+                    <div style="margin-top: 10px; color: #92400e;">Hunter waits, hiders scatter!</div>
+                </div>
+            </div>
+
+            <!-- Hunter Phase -->
+            <div id="hunterPhase" class="hidden">
+                <div class="proximity-box">
+                    <div class="proximity-status" id="proximityStatus">Searching...</div>
+                    <div class="proximity-distance" id="proximityDistance">---</div>
+                    <div style="margin-top: 10px; color: #166534;">Distance to nearest player</div>
+                    <div class="beep-indicator">
+                        <div class="beep-dot"></div>
+                        <div class="beep-dot"></div>
+                        <div class="beep-dot"></div>
+                        <div class="beep-dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hider Phase -->
+            <div id="hiderPhase" class="hidden">
+                <div class="alert alert-warning" style="text-align: center;">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">🤫</div>
+                    <strong>Stay Hidden!</strong><br>
+                    The hunter is tracking you...
+                </div>
+            </div>
+
+            <div class="button-row" style="margin-top: 20px;">
+                <button class="button button-danger" onclick="endGame()">End Game</button>
+                <button class="button button-secondary" onclick="resetGame()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            currentUser: null,
+            gameGroup: null,
+            hunter: null,
+            isGameActive: false,
+            countdownSeconds: 0,
+            playerLocations: {},
+            watchId: null,
+            audioContext: null,
+            beepInterval: null,
+            oscillator: null
+        };
+
+        // Initialize Audio
+        function initAudio() {
+            if (!gameState.audioContext) {
+                gameState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Register User
+        function registerUser() {
+            const username = document.getElementById('usernameInput').value.trim();
+            if (!username) {
+                alert('Please enter a username');
+                return;
+            }
+
+            gameState.currentUser = {
+                id: 'user_' + Date.now(),
+                username: username
+            };
+
+            document.getElementById('userName').textContent = username;
+            document.getElementById('userAvatar').textContent = username.charAt(0).toUpperCase();
+
+            switchScreen('welcomeScreen', 'homeScreen');
+            startLocationTracking();
+        }
+
+        // Start GPS Tracking
+        function startLocationTracking() {
+            if (!navigator.geolocation) {
+                document.getElementById('gpsStatus').innerHTML = '❌ Not supported';
+                alert('GPS not supported on this device');
+                return;
+            }
+
+            document.getElementById('gpsStatus').innerHTML = '⏳ Acquiring...';
+
+            gameState.watchId = navigator.geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude, accuracy } = position.coords;
+                    gameState.playerLocations[gameState.currentUser.id] = {
+                        lat: latitude,
+                        lng: longitude,
+                        accuracy: accuracy,
+                        timestamp: Date.now()
+                    };
+                    
+                    document.getElementById('gpsStatus').innerHTML = 
+                        `✅ Active (±${Math.round(accuracy)}m)`;
+                },
+                (error) => {
+                    document.getElementById('gpsStatus').innerHTML = '❌ Error';
+                    console.error('GPS Error:', error);
+                    alert('GPS Error: ' + error.message + '. Please enable location services.');
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 5000
+                }
+            );
+        }
+
+        // Create Group
+        function createGroup() {
+            const groupName = document.getElementById('groupName').value.trim() || 'My Game';
+            
+            const players = [gameState.currentUser];
+            
+            if (document.getElementById('player1').checked) {
+                players.push({ id: 'alice', username: 'Alice' });
+            }
+            if (document.getElementById('player2').checked) {
+                players.push({ id: 'bob', username: 'Bob' });
+            }
+            if (document.getElementById('player3').checked) {
+                players.push({ id: 'charlie', username: 'Charlie' });
+            }
+
+            if (players.length < 2) {
+                alert('Please invite at least one friend!');
+                return;
+            }
+
+            gameState.gameGroup = {
+                name: groupName,
+                players: players
+            };
+
+            // Simulate locations for other players
+            players.forEach(player => {
+                if (player.id !== gameState.currentUser.id) {
+                    const userLoc = gameState.playerLocations[gameState.currentUser.id];
+                    if (userLoc) {
+                        gameState.playerLocations[player.id] = {
+                            lat: userLoc.lat + (Math.random() - 0.5) * 0.01,
+                            lng: userLoc.lng + (Math.random() - 0.5) * 0.01,
+                            accuracy: 10,
+                            timestamp: Date.now()
+                        };
+                    }
+                }
+            });
+
+            document.getElementById('lobbyTitle').textContent = groupName;
+            updatePlayersList();
+            switchScreen('homeScreen', 'lobbyScreen');
+            document.getElementById('hunterSelection').classList.remove('hidden');
+        }
+
+        // Update Players List
+        function updatePlayersList() {
+            const list = document.getElementById('playersList');
+            const hunterButtons = document.getElementById('hunterButtons');
+            
+            list.innerHTML = '';
+            hunterButtons.innerHTML = '';
+
+            gameState.gameGroup.players.forEach(player => {
+                const item = document.createElement('div');
+                item.className = 'player-item' + (gameState.hunter?.id === player.id ? ' hunter' : '');
+                item.innerHTML = `
+                    <div class="player-avatar">${player.username.charAt(0).toUpperCase()}</div>
+                    <div class="player-name">${player.username}</div>
+                    ${gameState.hunter?.id === player.id ? '<span class="badge">Hunter</span>' : ''}
+                `;
+                list.appendChild(item);
+
+                if (!gameState.hunter) {
+                    const btn = document.createElement('button');
+                    btn.className = 'button';
+                    btn.textContent = player.username;
+                    btn.onclick = () => selectHunter(player);
+                    hunterButtons.appendChild(btn);
+                }
+            });
+        }
+
+        // Select Hunter
+        function selectHunter(player) {
+            gameState.hunter = player;
+            updatePlayersList();
+            document.getElementById('hunterSelection').classList.add('hidden');
+            document.getElementById('gameControls').classList.remove('hidden');
+        }
+
+        // Start Game
+        function startGame(minutes) {
+            gameState.isGameActive = true;
+            gameState.countdownSeconds = minutes * 60;
+
+            switchScreen('lobbyScreen', 'gameScreen');
+            document.getElementById('countdownPhase').classList.remove('hidden');
+
+            initAudio();
+
+            const countdownInterval = setInterval(() => {
+                gameState.countdownSeconds--;
+                
+                const mins = Math.floor(gameState.countdownSeconds / 60);
+                const secs = gameState.countdownSeconds % 60;
+                document.getElementById('countdownTimer').textContent = 
+                    `${mins}:${secs.toString().padStart(2, '0')}`;
+
+                if (gameState.countdownSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    startHunting();
+                }
+            }, 1000);
+        }
+
+        // Start Hunting Phase
+        function startHunting() {
+            document.getElementById('countdownPhase').classList.add('hidden');
+            
+            if (gameState.currentUser.id === gameState.hunter.id) {
+                document.getElementById('hunterPhase').classList.remove('hidden');
+                startProximityTracking();
+            } else {
+                document.getElementById('hiderPhase').classList.remove('hidden');
+            }
+        }
+
+        // Calculate Distance (Haversine)
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lng2 - lng1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        // Get Closest Player Distance
+        function getClosestDistance() {
+            const hunterLoc = gameState.playerLocations[gameState.hunter.id];
+            if (!hunterLoc) return null;
+
+            let minDistance = Infinity;
+
+            gameState.gameGroup.players.forEach(player => {
+                if (player.id !== gameState.hunter.id) {
+                    const playerLoc = gameState.playerLocations[player.id];
+                    if (playerLoc) {
+                        const distance = calculateDistance(
+                            hunterLoc.lat, hunterLoc.lng,
+                            playerLoc.lat, playerLoc.lng
+                        );
+                        minDistance = Math.min(minDistance, distance);
+                    }
+                }
+            });
+
+            return minDistance === Infinity ? null : minDistance;
+        }
+
+        // Play Beep
+        function playBeep(frequency, duration, volume) {
+            const oscillator = gameState.audioContext.createOscillator();
+            const gainNode = gameState.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(gameState.audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            gainNode.gain.value = volume;
+            
+            oscillator.start();
+            setTimeout(() => oscillator.stop(), duration);
+        }
+
+        // Animate Beep Dots
+        function animateBeepDots(interval) {
+            const dots = document.querySelectorAll('.beep-dot');
+            let currentDot = 0;
+            
+            return setInterval(() => {
+                dots.forEach(dot => dot.classList.remove('active'));
+                dots[currentDot].classList.add('active');
+                currentDot = (currentDot + 1) % dots.length;
+            }, interval / 4);
+        }
+
+        // Start Proximity Tracking
+        function startProximityTracking() {
+            const updateProximity = () => {
+                const distance = getClosestDistance();
+                
+                if (distance === null) {
+                    document.getElementById('proximityDistance').textContent = '---';
+                    document.getElementById('proximityStatus').textContent = 'No signal';
+                    return;
+                }
+
+                document.getElementById('proximityDistance').textContent = Math.round(distance) + 'm';
+
+                let interval, volume, frequency, beepDuration, status;
+
+                if (distance < 10) {
+                    status = 'Very Close!';
+                    if (!gameState.oscillator) {
+                        gameState.oscillator = gameState.audioContext.createOscillator();
+                        const gainNode = gameState.audioContext.createGain();
+                        gameState.oscillator.connect(gainNode);
+                        gainNode.connect(gameState.audioContext.destination);
+                        gameState.oscillator.frequency.value = 800;
+                        gainNode.gain.value = 0.3;
+                        gameState.oscillator.start();
+
+                        const dots = document.querySelectorAll('.beep-dot');
+                        gameState.beepInterval = setInterval(() => {
+                            dots.forEach(dot => dot.classList.toggle('active'));
+                        }, 200);
+                    }
+                } else {
+                    if (gameState.oscillator) {
+                        gameState.oscillator.stop();
+                        gameState.oscillator = null;
+                        if (gameState.beepInterval) {
+                            clearInterval(gameState.beepInterval);
+                            gameState.beepInterval = null;
+                        }
+                    }
+
+                    if (distance >= 100) {
+                        interval = 3000;
+                        volume = 0.15;
+                        frequency = 400;
+                        beepDuration = 100;
+                        status = 'Far Away';
+                    } else if (distance >= 50) {
+                        interval = 1500;
+                        volume = 0.25;
+                        frequency = 500;
+                        beepDuration = 150;
+                        status = 'Getting Closer';
+                    } else {
+                        interval = 500;
+                        volume = 0.35;
+                        frequency = 700;
+                        beepDuration = 200;
+                        status = 'Close!';
+                    }
+
+                    document.getElementById('proximityStatus').textContent = status;
+
+                    if (gameState.beepInterval) {
+                        clearInterval(gameState.beepInterval);
+                    }
+
+                    playBeep(frequency, beepDuration, volume);
+                    gameState.beepInterval = setInterval(() => {
+                        playBeep(frequency, beepDuration, volume);
+                    }, interval);
+
+                    const dotInterval = animateBeepDots(interval);
+                    setTimeout(() => clearInterval(dotInterval), interval - 50);
+                }
+            };
+
+            updateProximity();
+            setInterval(updateProximity, 3000);
+        }
+
+        // End Game
+        function endGame() {
+            if (confirm('End the game for everyone?')) {
+                stopAllSounds();
+                alert('Game ended by ' + gameState.currentUser.username);
+                gameState.isGameActive = false;
+                resetGame();
+            }
+        }
+
+        // Reset Game
+        function resetGame() {
+            stopAllSounds();
+            gameState.hunter = null;
+            gameState.isGameActive = false;
+            gameState.countdownSeconds = 0;
+            
+            switchScreen('gameScreen', 'lobbyScreen');
+            document.getElementById('hunterSelection').classList.remove('hidden');
+            document.getElementById('gameControls').classList.add('hidden');
+            document.getElementById('countdownPhase').classList.add('hidden');
+            document.getElementById('hunterPhase').classList.add('hidden');
+            document.getElementById('hiderPhase').classList.add('hidden');
+            
+            updatePlayersList();
+        }
+
+        // Stop All Sounds
+        function stopAllSounds() {
+            if (gameState.beepInterval) {
+                clearInterval(gameState.beepInterval);
+                gameState.beepInterval = null;
+            }
+            if (gameState.oscillator) {
+                gameState.oscillator.stop();
+                gameState.oscillator = null;
+            }
+            document.querySelectorAll('.beep-dot').forEach(dot => {
+                dot.classList.remove('active');
+            });
+        }
+
+        // Switch Screen
+        function switchScreen(fromId, toId) {
+            document.getElementById(fromId).classList.add('hidden');
+            document.getElementById(toId).classList.remove('hidden');
+        }
+
+        // Cleanup on unload
+        window.addEventListener('beforeunload', () => {
+            if (gameState.watchId) {
+                navigator.geolocation.clearWatch(gameState.watchId);
+            }
+            stopAllSounds();
+            if (gameState.audioContext) {
+                gameState.audioContext.close();
+            }
+        });
+    </script>
+</body>
+</html>
