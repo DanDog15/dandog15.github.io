@@ -1,856 +1,706 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Hide and Beep - Location Game</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 20px;
-        }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            color: white;
-            font-size: 2rem;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2rem;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e5e7eb;
-            border-radius: 10px;
-            font-size: 1rem;
-            margin-bottom: 15px;
-            transition: border-color 0.3s;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .button {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .button:active {
-            transform: translateY(0);
-        }
-
-        .button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .button-secondary {
-            background: #6b7280;
-        }
-
-        .button-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-        }
-
-        .button-success {
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        }
-
-        .button-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .player-avatar {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .player-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 15px;
-            background: #f9fafb;
-            border-radius: 10px;
-            margin-bottom: 10px;
-        }
-
-        .player-item.hunter {
-            background: #fee;
-            border: 2px solid #ef4444;
-        }
-
-        .player-name {
-            flex: 1;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .badge {
-            background: #ef4444;
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-
-        .status-active { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
-        .status-inactive { background: #6b7280; }
-
-        .countdown-box {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            border: 3px solid #f59e0b;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .countdown-time {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #d97706;
-            margin: 10px 0;
-        }
-
-        .countdown-label {
-            color: #92400e;
-            font-weight: bold;
-            font-size: 1.1rem;
-        }
-
-        .proximity-box {
-            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-            border: 3px solid #22c55e;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .proximity-distance {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #15803d;
-            margin: 10px 0;
-        }
-
-        .proximity-status {
-            color: #166534;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
-        .beep-indicator {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .beep-dot {
-            width: 15px;
-            height: 15px;
-            background: rgba(34, 197, 94, 0.3);
-            border-radius: 50%;
-            transition: all 0.2s;
-        }
-
-        .beep-dot.active {
-            background: #22c55e;
-            box-shadow: 0 0 15px #22c55e;
-            transform: scale(1.5);
-        }
-
-        .location-status {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            background: #f0f9ff;
-            border-radius: 10px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: #f9fafb;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .checkbox-item:hover {
-            background: #f3f4f6;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            font-weight: bold;
-        }
-
-        .alert-info {
-            background: #dbeafe;
-            color: #1e40af;
-            border-left: 4px solid #3b82f6;
-        }
-
-        .alert-warning {
-            background: #fef3c7;
-            color: #92400e;
-            border-left: 4px solid #f59e0b;
-        }
-
-        .alert-success {
-            background: #dcfce7;
-            color: #166534;
-            border-left: 4px solid #22c55e;
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-
-            .card {
-                padding: 20px;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .countdown-time {
-                font-size: 2.5rem;
-            }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <title>Hide and Beep</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f14" />
+  manifest.json
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121822;
+      --text: #e9f0f7;
+      --muted: #9fb3c8;
+      --accent: #27d3a2;
+      --warn: #ffb020;
+      --danger: #ff5a5f;
+      --ok: #27d3a2;
+      --btn: #1e2633;
+      --btn-hover: #273041;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom); }
+    header { padding: 16px 0 8px; display: flex; align-items: center; justify-content: space-between; }
+    .brand { font-size: 1.25rem; font-weight: 700; letter-spacing: .3px; }
+    .status-pill { font-size: .85rem; padding: 6px 10px; border-radius: 999px; background: #1a232f; color: var(--muted); }
+    .panel { background: var(--panel); border: 1px solid #1c2632; border-radius: 12px; padding: 16px; margin: 12px 0; }
+    h1, h2, h3 { margin: 0 0 8px; }
+    p { margin: 4px 0 10px; color: var(--muted); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      background: var(--btn); color: var(--text); border: 1px solid #2b3650; border-radius: 10px;
+      padding: 12px 14px; font-weight: 600; cursor: pointer; transition: background .15s, transform .02s;
+    }
+    .btn:hover { background: var(--btn-hover); }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: #1a3a2f; border-color: #2a5d4b; }
+    .btn-accent { background: #0f2a22; border-color: #1f4f42; color: #8cf5db; }
+    .btn-danger { background: #341318; border-color: #602229; color: #ffb8bc; }
+    input, select { background: #0f141c; color: var(--text); border: 1px solid #263246; border-radius: 10px; padding: 10px 12px; width: 100%; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .5px; }
+    .hidden { display: none !important; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #15202b; color: var(--muted); font-size: .8rem; border: 1px solid #213047; }
+    .grid { display: grid; gap: 10px; }
+    .grid.two { grid-template-columns: 1fr 1fr; }
+    .meter {
+      --pct: 0%;
+      height: 12px; background: #0d121a; border: 1px solid #203046; border-radius: 999px; overflow: hidden;
+      position: relative;
+    }
+    .meter::after {
+      content:''; position:absolute; inset:0; width: var(--pct);
+      background: linear-gradient(90deg, #2759ff, #27d3a2);
+      transition: width .2s;
+    }
+    .callout { padding: 10px 12px; border-radius: 12px; background: #0e1520; border: 1px dashed #2a3a54; color: var(--muted); }
+    .warn { color: var(--warn); }
+    .danger { color: var(--danger); }
+    .ok { color: var(--ok); }
+    footer { opacity: .6; font-size: .85rem; padding: 12px 0 30px; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Welcome Screen -->
-        <div id="welcomeScreen" class="card">
-            <div class="logo">📍</div>
-            <h1>Hide and Beep</h1>
-            <p class="subtitle">Location-Based Hide and Seek</p>
-            
-            <input type="text" id="usernameInput" class="input-field" placeholder="Enter your username" />
-            <button class="button" onclick="registerUser()">Register & Play</button>
-            
-            <div class="alert alert-info" style="margin-top: 20px;">
-                <strong>📱 Requirements:</strong><br>
-                • Location services enabled<br>
-                • HTTPS connection<br>
-                • Modern mobile browser
-            </div>
+  <div class="wrap">
+    <header>
+      <div class="brand">🔊 Hide and Beep</div>
+      <div id="connStatus" class="status-pill">WS: <span class="danger">Disconnected</span></div>
+    </header>
+
+    <!-- CONSENT -->
+    <section id="view-consent" class="panel">
+      <h2>Permissions</h2>
+      <p><strong>Location &amp; Audio</strong></p>
+      <p>Hide and Beep shares your live location with players in your current game room only. Data isn’t stored after the game ends.<br/>We’ll request access to your location and enable short beeps and vibration for distance feedback.</p>
+      <div class="row">
+        <button id="btnConsentAgree" class="btn btn-primary">I Agree</button>
+        <button id="btnConsentCancel" class="btn">Cancel</button>
+      </div>
+      <div id="permMsg" class="callout hidden"></div>
+    </section>
+
+    <!-- HOME -->
+    <section id="view-home" class="panel hidden">
+      <h2>Start</h2>
+      <div class="grid two">
+        <button id="btnCreate" class="btn btn-accent">Create Game</button>
+        <button id="btnJoin" class="btn">Join Game</button>
+      </div>
+      <p class="callout">Audio will start after your first tap. Best played outdoors with clear sky for GPS.</p>
+    </section>
+
+    <!-- CREATE -->
+    <section id="view-create" class="panel hidden">
+      <h2>Create Game</h2>
+      <div class="grid">
+        <label>Display name
+          <input id="createName" placeholder="Your name" maxlength="20" />
+        </label>
+        <div class="row">
+          <button id="btnCreateGo" class="btn btn-primary">Create</button>
+          <button class="btn" data-nav="home">Back</button>
         </div>
+      </div>
+    </section>
 
-        <!-- Home Screen -->
-        <div id="homeScreen" class="card hidden">
-            <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px;">
-                <div class="player-avatar" id="userAvatar"></div>
-                <div style="flex: 1;">
-                    <h2 style="margin: 0;" id="userName"></h2>
-                    <div class="location-status">
-                        <span>GPS Status:</span>
-                        <span id="gpsStatus">⏳ Checking...</span>
-                    </div>
-                </div>
-            </div>
-
-            <h2>Create Game Group</h2>
-            <input type="text" id="groupName" class="input-field" placeholder="Group name (e.g., My Game)" />
-            
-            <div style="background: #f9fafb; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                <strong style="display: block; margin-bottom: 10px; color: #666;">Invite Friends:</strong>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="player1" checked />
-                    <label for="player1">Alice</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="player2" checked />
-                    <label for="player2">Bob</label>
-                </div>
-                <div class="checkbox-item">
-                    <input type="checkbox" id="player3" />
-                    <label for="player3">Charlie</label>
-                </div>
-            </div>
-
-            <button class="button" onclick="createGroup()">Create Group</button>
+    <!-- JOIN -->
+    <section id="view-join" class="panel hidden">
+      <h2>Join Game</h2>
+      <div class="grid">
+        <label>Display name
+          <input id="joinName" placeholder="Your name" maxlength="20" />
+        </label>
+        <label>Game code
+          <input id="joinCode" class="code" placeholder="ABC123" maxlength="6" />
+        </label>
+        <div class="row">
+          <button id="btnJoinGo" class="btn btn-primary">Join</button>
+          <button class="btn" data-nav="home">Back</button>
         </div>
+      </div>
+    </section>
 
-        <!-- Lobby Screen -->
-        <div id="lobbyScreen" class="card hidden">
-            <h2 id="lobbyTitle">Game Lobby</h2>
-            
-            <div id="playersList"></div>
+    <!-- LOBBY -->
+    <section id="view-lobby" class="panel hidden">
+      <h2>Lobby</h2>
+      <p>Share your code:</p>
+      <div class="row">
+        <div class="badge code" id="roomCode">------</div>
+        <button id="btnCopyCode" class="btn">Copy</button>
+      </div>
+      <div class="panel">
+        <h3>Players</h3>
+        <ul id="playerList"></ul>
+      </div>
+      <div class="grid two">
+        <label>Hiding time
+          <select id="hideTime">
+            <option value="60">1 min</option>
+            <option value="120">2 min</option>
+            <option value="300">5 min</option>
+          </select>
+        </label>
+        <label>Hunter
+          <select id="hunterSelect"></select>
+        </label>
+      </div>
+      <div class="row">
+        <button id="btnStartGame" class="btn btn-accent">Start</button>
+        <button class="btn btn-danger" id="btnLeaveLobby">Leave</button>
+      </div>
+    </section>
 
-            <div id="hunterSelection" class="hidden">
-                <div class="alert alert-info">Select who will be the hunter:</div>
-                <div id="hunterButtons" class="button-row"></div>
-            </div>
+    <!-- COUNTDOWN -->
+    <section id="view-countdown" class="panel hidden">
+      <h2>Hiding…</h2>
+      <p>Time remaining:</p>
+      <div class="badge" id="countdownBadge">—</div>
+      <div class="row">
+        <button id="btnCancelStart" class="btn">Cancel</button>
+      </div>
+    </section>
 
-            <div id="gameControls" class="hidden">
-                <div class="alert alert-success">Hunter selected! Choose hiding time:</div>
-                <div class="button-row">
-                    <button class="button button-success" onclick="startGame(1)">⏰ 1 min</button>
-                    <button class="button button-success" onclick="startGame(2)">⏰ 2 min</button>
-                    <button class="button button-success" onclick="startGame(5)">⏰ 5 min</button>
-                </div>
-            </div>
+    <!-- HUNT -->
+    <section id="view-hunt" class="panel hidden">
+      <h2>Hunt</h2>
+      <div class="grid two">
+        <div class="panel">
+          <div>Role: <span id="roleLabel" class="badge">—</span></div>
+          <div>GPS: <span id="gpsStatus" class="badge">—</span></div>
+          <div>Spoofing: <span id="spoofStatus" class="badge">None</span></div>
         </div>
-
-        <!-- Active Game Screen -->
-        <div id="gameScreen" class="card hidden">
-            <h2 id="gameTitle">Game Active</h2>
-
-            <!-- Countdown Phase -->
-            <div id="countdownPhase" class="hidden">
-                <div class="countdown-box">
-                    <div class="countdown-label">🏃 Time to Hide!</div>
-                    <div class="countdown-time" id="countdownTimer">0:00</div>
-                    <div style="margin-top: 10px; color: #92400e;">Hunter waits, hiders scatter!</div>
-                </div>
-            </div>
-
-            <!-- Hunter Phase -->
-            <div id="hunterPhase" class="hidden">
-                <div class="proximity-box">
-                    <div class="proximity-status" id="proximityStatus">Searching...</div>
-                    <div class="proximity-distance" id="proximityDistance">---</div>
-                    <div style="margin-top: 10px; color: #166534;">Distance to nearest player</div>
-                    <div class="beep-indicator">
-                        <div class="beep-dot"></div>
-                        <div class="beep-dot"></div>
-                        <div class="beep-dot"></div>
-                        <div class="beep-dot"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Hider Phase -->
-            <div id="hiderPhase" class="hidden">
-                <div class="alert alert-warning" style="text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px;">🤫</div>
-                    <strong>Stay Hidden!</strong><br>
-                    The hunter is tracking you...
-                </div>
-            </div>
-
-            <div class="button-row" style="margin-top: 20px;">
-                <button class="button button-danger" onclick="endGame()">End Game</button>
-                <button class="button button-secondary" onclick="resetGame()">Reset</button>
-            </div>
+        <div class="panel">
+          <div>Nearest distance</div>
+          <div style="font-size:2rem; font-weight:800;"><span id="distNum">—</span> m</div>
+          <div class="meter" id="distMeter" style="--pct:0%;"></div>
+          <div class="badge">Beep: <span id="beepInterval">—</span> ms</div>
         </div>
-    </div>
+      </div>
+      <div id="hunterControls" class="panel hidden">
+        <button id="btnTag" class="btn btn-primary">Tag (I found someone)</button>
+      </div>
+      <div id="warnings" class="callout hidden"></div>
+      <div class="row">
+        <button id="btnEndGame" class="btn btn-danger">End Game</button>
+      </div>
+    </section>
 
-    <script>
-        // Game State
-        let gameState = {
-            currentUser: null,
-            gameGroup: null,
-            hunter: null,
-            isGameActive: false,
-            countdownSeconds: 0,
-            playerLocations: {},
-            watchId: null,
-            audioContext: null,
-            beepInterval: null,
-            oscillator: null
-        };
+    <!-- END -->
+    <section id="view-end" class="panel hidden">
+      <h2>Game Over</h2>
+      <div id="endSummary" class="callout">—</div>
+      <div class="row">
+        <button id="btnRematch" class="btn btn-accent">Rematch</button>
+        <button id="btnExit" class="btn">Exit</button>
+      </div>
+    </section>
 
-        // Initialize Audio
-        function initAudio() {
-            if (!gameState.audioContext) {
-                gameState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
+    <footer>
+      <div>Meters only · 1s GPS updates · Fixed 800 Hz/200 ms beep · Auto found at ≤5 m + manual Tag</div>
+    </footer>
+  </div>
+
+  <script>
+  // =========================
+  // Configuration & Constants
+  // =========================
+  const WS_URL = 'wss://YOUR-WEBSOCKET-ENDPOINT.example'; // TODO: Point to Cloudflare Worker later
+  const UPDATE_INTERVAL_MS = 1000; // GPS + logic update cadence
+  const FOUND_THRESHOLD_M = 5;     // auto-found
+  const DIST_CAP_FOR_BEEP = 500;   // cap for beep mapping (numeric distance still shows actual)
+  const AUDIO_FREQ_HZ = 800;
+  const BEEP_MS = 200;
+
+  // 5-step thresholds (meters -> interval ms)
+  function intervalForDistance(m) {
+    const d = Math.min(m, DIST_CAP_FOR_BEEP);
+    if (d >= 500) return 1500;
+    if (d >= 200) return 1000;
+    if (d >= 100) return 600;
+    if (d >= 20)  return 400;
+    return 200;
+  }
+
+  // =========================
+  // App State
+  // =========================
+  const app = {
+    view: 'consent', // consent|home|create|join|lobby|countdown|hunt|end
+    me: { id: null, name: '', role: 'hider' }, // role: 'hunter' | 'hider'
+    room: { code: null, players: [] },
+    hideSeconds: 60,
+    countdownEndTs: 0,
+    ws: null, wsReady: false,
+    geoWatchId: null,
+    lastFixes: [], // for smoothing: [{lat,lon,ts,acc}]
+    lastGoodFix: null,
+    spoofFlag: false,
+    lastRemotePositions: {}, // playerId -> {lat,lon,ts}
+    audioUnlocked: false,
+    wakeLock: null,
+    beepTimer: null,
+    lastBeepInterval: null,
+    lastBeepAt: 0,
+    roleIsHunter() { return app.me.role === 'hunter'; },
+  };
+
+  // =========================
+  // Utilities
+  // =========================
+  function $(sel) { return document.querySelector(sel); }
+  function show(id) { document.querySelectorAll('section').forEach(s => s.id === id ? s.classList.remove('hidden') : s.classList.add('hidden')); app.view = id.replace('view-', ''); }
+  function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
+  function setBadge(id, v, cls) {
+    const el = $(id);
+    if (!el) return;
+    el.textContent = v;
+    el.className = 'badge' + (cls ? ' ' + cls : '');
+  }
+  function clamp(n, a, b){ return Math.max(a, Math.min(n, b)); }
+  function codeGen(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s += a[Math.floor(Math.random()*a.length)]; return s; }
+
+  // Haversine distance in meters
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = d => d*Math.PI/180;
+    const dLat = toRad(lat2-lat1);
+    const dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  // Basic smoothing (last 3 fixes)
+  function smoothedFix() {
+    if (app.lastFixes.length === 0) return null;
+    const arr = app.lastFixes.slice(-3);
+    const lat = arr.reduce((s,f)=>s+f.lat,0)/arr.length;
+    const lon = arr.reduce((s,f)=>s+f.lon,0)/arr.length;
+    const acc = arr.reduce((s,f)=>s+ (f.acc||0),0)/arr.length;
+    return { lat, lon, acc, ts: arr[arr.length-1].ts };
+  }
+
+  // Spoof detection: high speed (> 60 km/h) or huge jump (> 200 m) between 1s ticks
+  function spoofCheck(prev, curr) {
+    if (!prev || !curr) return false;
+    const d = haversine(prev.lat, prev.lon, curr.lat, curr.lon);
+    const dt = Math.max(1, (curr.ts - prev.ts)/1000);
+    const speedKmh = (d/1000) / (dt/3600);
+    return (d > 200) || (speedKmh > 60);
+  }
+
+  function updateMeter(m, min=0, max=DIST_CAP_FOR_BEEP) {
+    const pct = clamp(1 - (Math.min(m, max) / max), 0, 1) * 100;
+    const el = $('#distMeter');
+    el.style.setProperty('--pct', pct.toFixed(1) + '%');
+  }
+
+  // =========================
+  // Audio & Haptics (simple)
+  // =========================
+  let audioCtx = null;
+  function unlockAudio() {
+    if (app.audioUnlocked) return;
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // create a silent buffer to satisfy gesture policies
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      g.gain.value = 0.0001;
+      o.connect(g).connect(audioCtx.destination);
+      o.start();
+      o.stop(audioCtx.currentTime + 0.01);
+      app.audioUnlocked = true;
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  function beep(durationMs=BEEP_MS, freq=AUDIO_FREQ_HZ) {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'sine';
+    o.frequency.value = freq;
+    g.gain.setValueAtTime(0.001, now);
+    g.gain.exponentialRampToValueAtTime(0.3, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, now + durationMs/1000);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(now);
+    o.stop(now + durationMs/1000);
+
+    // Haptics
+    if (navigator.vibrate) navigator.vibrate(durationMs);
+  }
+
+  function setBeepInterval(ms) {
+    setText('#beepInterval', ms);
+    if (app.beepTimer) { clearInterval(app.beepTimer); app.beepTimer = null; }
+    app.lastBeepInterval = ms;
+    if (app.roleIsHunter() && !app.spoofFlag) {
+      app.beepTimer = setInterval(() => {
+        // Only beep if we have a recent fix and GPS ok
+        const ok = !!app.lastGoodFix && (!$('#warnings').textContent.includes('GPS accuracy poor'));
+        if (ok) beep();
+      }, ms);
+    }
+  }
+
+  // =========================
+  // Wake Lock
+  // =========================
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator) {
+        app.wakeLock = await navigator.wakeLock.request('screen');
+        app.wakeLock.addEventListener('release', ()=>{ /* no-op */ });
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  // =========================
+  // WebSocket (stubbed)
+  // =========================
+  function wsConnect() {
+    try {
+      app.ws = new WebSocket(WS_URL);
+      app.ws.addEventListener('open', () => {
+        app.wsReady = true;
+        $('#connStatus').innerHTML = 'WS: <span class="ok">Connected</span>';
+        // If already in a room, rejoin
+        if (app.room.code && app.me.id) {
+          wsSend({ t:'rejoin', room: app.room.code, id: app.me.id, name: app.me.name });
         }
+      });
+      app.ws.addEventListener('close', () => {
+        app.wsReady = false;
+        $('#connStatus').innerHTML = 'WS: <span class="danger">Disconnected</span>';
+        setTimeout(wsConnect, 3000);
+      });
+      app.ws.addEventListener('error', () => {
+        app.wsReady = false;
+        $('#connStatus').innerHTML = 'WS: <span class="danger">Disconnected</span>';
+      });
+      app.ws.addEventListener('message', ev => {
+        try { handleWs(JSON.parse(ev.data)); } catch(e) {}
+      });
+    } catch (e) {
+      $('#connStatus').innerHTML = 'WS: <span class="danger">Disconnected</span>';
+    }
+  }
+  function wsSend(obj) {
+    if (app.wsReady) app.ws.send(JSON.stringify(obj));
+  }
+  function handleWs(msg) {
+    switch (msg.t) {
+      case 'welcome':
+        app.me.id = msg.id;
+        break;
+      case 'room':
+        app.room.code = msg.room;
+        $('#roomCode').textContent = app.room.code;
+        break;
+      case 'players':
+        app.room.players = msg.players;
+        renderPlayers();
+        break;
+      case 'start':
+        app.me.role = msg.roleMap[app.me.id] || 'hider';
+        setText('#roleLabel', app.me.role.toUpperCase());
+        app.countdownEndTs = Date.now() + (msg.hideSeconds*1000);
+        show('view-countdown');
+        break;
+      case 'hunt':
+        // signal to enter hunt screen now
+        show('view-hunt');
+        setText('#roleLabel', app.me.role.toUpperCase());
+        break;
+      case 'positions':
+        app.lastRemotePositions = msg.positions || {};
+        break;
+      case 'found':
+        endGameSummary(msg.summary || 'Found!');
+        break;
+      case 'end':
+        endGameSummary(msg.summary || 'Game ended.');
+        break;
+    }
+  }
 
-        // Register User
-        function registerUser() {
-            const username = document.getElementById('usernameInput').value.trim();
-            if (!username) {
-                alert('Please enter a username');
-                return;
-            }
+  // For UI demo without backend: local fake IDs and immediate lobby display
+  function simulateLocalCreate() {
+    app.me.id = app.me.id || ('me-' + Math.random().toString(36).slice(2));
+    app.room.code = app.room.code || codeGen();
+    $('#roomCode').textContent = app.room.code;
+    app.room.players = [{ id: app.me.id, name: app.me.name }];
+    renderPlayers();
+  }
 
-            gameState.currentUser = {
-                id: 'user_' + Date.now(),
-                username: username
-            };
+  // =========================
+  // GPS Handling
+  // =========================
+  function startGeo() {
+    if (!('geolocation' in navigator)) {
+      warn('Geolocation not supported.');
+      setBadge('#gpsStatus','Unsupported','danger');
+      return;
+    }
+    try {
+      if (app.geoWatchId) navigator.geolocation.clearWatch(app.geoWatchId);
+      app.geoWatchId = navigator.geolocation.watchPosition(onGeo, onGeoErr, {
+        enableHighAccuracy: true,
+        maximumAge: 500,
+        timeout: 6000,
+      });
+      setBadge('#gpsStatus','Watching','ok');
+    } catch (e) {
+      warn('Failed to start GPS.');
+      setBadge('#gpsStatus','Error','danger');
+    }
+  }
 
-            document.getElementById('userName').textContent = username;
-            document.getElementById('userAvatar').textContent = username.charAt(0).toUpperCase();
+  function onGeo(pos) {
+    const { latitude:lat, longitude:lon, accuracy } = pos.coords;
+    const ts = pos.timestamp || Date.now();
+    const fix = { lat, lon, acc: accuracy, ts };
+    app.lastFixes.push(fix);
+    if (app.lastFixes.length > 10) app.lastFixes.shift();
 
-            switchScreen('welcomeScreen', 'homeScreen');
-            startLocationTracking();
+    const sm = smoothedFix();
+    // Accuracy gate: if accuracy > 50m, pause beeps and warn
+    const poor = (sm && sm.acc && sm.acc > 50);
+    if (poor) {
+      warn('GPS accuracy poor (>50 m). Beep paused.');
+    } else {
+      clearWarn();
+      app.lastGoodFix = sm || fix;
+    }
+
+    // Spoof check against last good fix
+    app.spoofFlag = spoofCheck(app.lastGoodFix, sm || fix);
+    setBadge('#spoofStatus', app.spoofFlag ? 'Suspected' : 'None', app.spoofFlag ? 'danger' : '');
+    if (app.spoofFlag) {
+      warn('Unrealistic movement detected. Beep paused.');
+    }
+
+    // Broadcast position
+    wsSend({ t: 'pos', room: app.room.code, id: app.me.id, lat: fix.lat, lon: fix.lon, ts });
+
+    // Update distance/beep for hunter
+    if (app.roleIsHunter()) {
+      const d = nearestDistanceMeters();
+      if (d != null) {
+        setText('#distNum', Math.round(d));
+        updateMeter(d);
+        const intv = intervalForDistance(d);
+        if (intv !== app.lastBeepInterval) setBeepInterval(intv);
+      } else {
+        setText('#distNum','—');
+        setBeepInterval(1000);
+      }
+    }
+  }
+
+  function onGeoErr(err) {
+    warn('Location error: ' + err.message);
+    setBadge('#gpsStatus','Error','danger');
+  }
+
+  function warn(msg) {
+    const w = $('#warnings'); w.textContent = msg; w.classList.remove('hidden');
+    if (app.beepTimer) { clearInterval(app.beepTimer); app.beepTimer = null; }
+  }
+  function clearWarn() {
+    const w = $('#warnings'); w.textContent = ''; w.classList.add('hidden');
+    if (app.roleIsHunter() && app.lastBeepInterval) {
+      setBeepInterval(app.lastBeepInterval);
+    }
+  }
+
+  function nearestDistanceMeters() {
+    const me = app.lastGoodFix;
+    if (!me) return null;
+    let best = null;
+    for (const [pid, p] of Object.entries(app.lastRemotePositions)) {
+      if (pid === app.me.id) continue;
+      if (!p || typeof p.lat !== 'number' || typeof p.lon !== 'number') continue;
+      const d = haversine(me.lat, me.lon, p.lat, p.lon);
+      if (best == null || d < best) best = d;
+    }
+    return best;
+  }
+
+  // =========================
+  // UI Actions
+  // =========================
+  $('#btnConsentAgree').addEventListener('click', async () => {
+    unlockAudio();
+    await requestWakeLock();
+    show('view-home');
+  });
+  $('#btnConsentCancel').addEventListener('click', () => {
+    $('#permMsg').classList.remove('hidden');
+    $('#permMsg').textContent = 'You can come back anytime when you’re ready.';
+  });
+
+  document.querySelectorAll('[data-nav]').forEach(b => b.addEventListener('click', e => {
+    const v = e.currentTarget.getAttribute('data-nav');
+    if (v === 'home') show('view-home');
+  }));
+
+  $('#btnCreate').addEventListener('click', () => show('view-create'));
+  $('#btnJoin').addEventListener('click', () => show('view-join'));
+
+  $('#btnCreateGo').addEventListener('click', () => {
+    const name = $('#createName').value.trim() || 'Player';
+    app.me.name = name;
+    simulateLocalCreate(); // until backend ready
+    show('view-lobby');
+  });
+
+  $('#btnJoinGo').addEventListener('click', () => {
+    const name = $('#joinName').value.trim() || 'Player';
+    const code = $('#joinCode').value.trim().toUpperCase();
+    app.me.name = name;
+    app.room.code = code || codeGen(); // allow empty for local test
+    simulateLocalCreate(); // until backend ready
+    show('view-lobby');
+  });
+
+  $('#btnCopyCode').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText($('#roomCode').textContent);
+      $('#btnCopyCode').textContent = 'Copied';
+      setTimeout(()=>$('#btnCopyCode').textContent='Copy', 1000);
+    } catch (e) {}
+  });
+
+  $('#btnStartGame').addEventListener('click', () => {
+    // Host picks hunter & hide time
+    const hideSeconds = parseInt($('#hideTime').value, 10);
+    app.hideSeconds = hideSeconds;
+    const hunterId = $('#hunterSelect').value || app.room.players[0]?.id;
+    app.me.role = (app.me.id === hunterId) ? 'hunter' : 'hider';
+    setText('#roleLabel', app.me.role.toUpperCase());
+    app.countdownEndTs = Date.now() + hideSeconds*1000;
+    show('view-countdown');
+    // Broadcast
+    wsSend({ t:'start', room: app.room.code, hideSeconds, hunterId });
+    startUpdateLoop();
+  });
+
+  $('#btnLeaveLobby').addEventListener('click', () => {
+    wsSend({ t:'leave', room: app.room.code, id: app.me.id });
+    resetToHome();
+  });
+
+  $('#btnCancelStart').addEventListener('click', () => {
+    wsSend({ t:'cancelStart', room: app.room.code });
+    show('view-lobby');
+  });
+
+  $('#btnEndGame').addEventListener('click', () => {
+    wsSend({ t:'end', room: app.room.code });
+    endGameSummary('Ended by host.');
+  });
+
+  $('#btnTag').addEventListener('click', () => {
+    // Manual found
+    wsSend({ t:'tag', room: app.room.code, id: app.me.id });
+    endGameSummary('Hunter tagged a hider.');
+  });
+
+  $('#btnRematch').addEventListener('click', () => {
+    show('view-lobby');
+    clearHunt();
+  });
+
+  $('#btnExit').addEventListener('click', () => {
+    resetToHome();
+  });
+
+  function startUpdateLoop() {
+    // show/hide hunter controls
+    $('#hunterControls').classList.toggle('hidden', !app.roleIsHunter());
+    startGeo();
+    requestWakeLock();
+    // countdown tick
+    const tick = () => {
+      if (app.view === 'countdown') {
+        const left = Math.max(0, Math.ceil((app.countdownEndTs - Date.now())/1000));
+        setText('#countdownBadge', left + 's');
+        if (left <= 0) {
+          // move to hunt
+          show('view-hunt');
+          setText('#roleLabel', app.me.role.toUpperCase());
         }
-
-        // Start GPS Tracking
-        function startLocationTracking() {
-            if (!navigator.geolocation) {
-                document.getElementById('gpsStatus').innerHTML = '❌ Not supported';
-                alert('GPS not supported on this device');
-                return;
-            }
-
-            document.getElementById('gpsStatus').innerHTML = '⏳ Acquiring...';
-
-            gameState.watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude, accuracy } = position.coords;
-                    gameState.playerLocations[gameState.currentUser.id] = {
-                        lat: latitude,
-                        lng: longitude,
-                        accuracy: accuracy,
-                        timestamp: Date.now()
-                    };
-                    
-                    document.getElementById('gpsStatus').innerHTML = 
-                        `✅ Active (±${Math.round(accuracy)}m)`;
-                },
-                (error) => {
-                    document.getElementById('gpsStatus').innerHTML = '❌ Error';
-                    console.error('GPS Error:', error);
-                    alert('GPS Error: ' + error.message + '. Please enable location services.');
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 5000
-                }
-            );
+      }
+      // broadcast last good fix every tick too
+      const sm = smoothedFix();
+      if (sm) {
+        wsSend({ t:'pos', room: app.room.code, id: app.me.id, lat: sm.lat, lon: sm.lon, ts: sm.ts });
+      }
+      // auto-found for hunter if close enough
+      if (app.view === 'hunt' && app.roleIsHunter()) {
+        const d = nearestDistanceMeters();
+        if (d != null && d <= FOUND_THRESHOLD_M) {
+          wsSend({ t:'found', room: app.room.code });
+          endGameSummary('Auto-found within 5 m!');
         }
+      }
+    };
+    if (app._interval) clearInterval(app._interval);
+    app._interval = setInterval(tick, UPDATE_INTERVAL_MS);
+  }
 
-        // Create Group
-        function createGroup() {
-            const groupName = document.getElementById('groupName').value.trim() || 'My Game';
-            
-            const players = [gameState.currentUser];
-            
-            if (document.getElementById('player1').checked) {
-                players.push({ id: 'alice', username: 'Alice' });
-            }
-            if (document.getElementById('player2').checked) {
-                players.push({ id: 'bob', username: 'Bob' });
-            }
-            if (document.getElementById('player3').checked) {
-                players.push({ id: 'charlie', username: 'Charlie' });
-            }
+  function renderPlayers() {
+    const ul = $('#playerList');
+    ul.innerHTML = '';
+    for (const p of app.room.players) {
+      const li = document.createElement('li');
+      li.textContent = p.name + (p.id === app.me.id ? ' (you)' : '');
+      ul.appendChild(li);
+    }
+    // Hunter select
+    const sel = $('#hunterSelect');
+    sel.innerHTML = '';
+    for (const p of app.room.players) {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    }
+    sel.value = sel.options[0]?.value || '';
+  }
 
-            if (players.length < 2) {
-                alert('Please invite at least one friend!');
-                return;
-            }
+  function clearHunt() {
+    if (app.beepTimer) { clearInterval(app.beepTimer); app.beepTimer = null; }
+    if (app.geoWatchId) { navigator.geolocation.clearWatch(app.geoWatchId); app.geoWatchId = null; }
+    app.lastFixes = [];
+    app.lastRemotePositions = {};
+    app.spoofFlag = false;
+    setBadge('#spoofStatus','None');
+    setText('#distNum','—');
+    setBeepInterval(1000);
+  }
 
-            gameState.gameGroup = {
-                name: groupName,
-                players: players
-            };
+  function resetToHome() {
+    clearHunt();
+    app.room = { code: null, players: [] };
+    app.me.role = 'hider';
+    show('view-home');
+  }
 
-            // Simulate locations for other players
-            players.forEach(player => {
-                if (player.id !== gameState.currentUser.id) {
-                    const userLoc = gameState.playerLocations[gameState.currentUser.id];
-                    if (userLoc) {
-                        gameState.playerLocations[player.id] = {
-                            lat: userLoc.lat + (Math.random() - 0.5) * 0.01,
-                            lng: userLoc.lng + (Math.random() - 0.5) * 0.01,
-                            accuracy: 10,
-                            timestamp: Date.now()
-                        };
-                    }
-                }
-            });
+  function endGameSummary(text) {
+    clearHunt();
+    setText('#endSummary', text);
+    show('view-end');
+  }
 
-            document.getElementById('lobbyTitle').textContent = groupName;
-            updatePlayersList();
-            switchScreen('homeScreen', 'lobbyScreen');
-            document.getElementById('hunterSelection').classList.remove('hidden');
-        }
-
-        // Update Players List
-        function updatePlayersList() {
-            const list = document.getElementById('playersList');
-            const hunterButtons = document.getElementById('hunterButtons');
-            
-            list.innerHTML = '';
-            hunterButtons.innerHTML = '';
-
-            gameState.gameGroup.players.forEach(player => {
-                const item = document.createElement('div');
-                item.className = 'player-item' + (gameState.hunter?.id === player.id ? ' hunter' : '');
-                item.innerHTML = `
-                    <div class="player-avatar">${player.username.charAt(0).toUpperCase()}</div>
-                    <div class="player-name">${player.username}</div>
-                    ${gameState.hunter?.id === player.id ? '<span class="badge">Hunter</span>' : ''}
-                `;
-                list.appendChild(item);
-
-                if (!gameState.hunter) {
-                    const btn = document.createElement('button');
-                    btn.className = 'button';
-                    btn.textContent = player.username;
-                    btn.onclick = () => selectHunter(player);
-                    hunterButtons.appendChild(btn);
-                }
-            });
-        }
-
-        // Select Hunter
-        function selectHunter(player) {
-            gameState.hunter = player;
-            updatePlayersList();
-            document.getElementById('hunterSelection').classList.add('hidden');
-            document.getElementById('gameControls').classList.remove('hidden');
-        }
-
-        // Start Game
-        function startGame(minutes) {
-            gameState.isGameActive = true;
-            gameState.countdownSeconds = minutes * 60;
-
-            switchScreen('lobbyScreen', 'gameScreen');
-            document.getElementById('countdownPhase').classList.remove('hidden');
-
-            initAudio();
-
-            const countdownInterval = setInterval(() => {
-                gameState.countdownSeconds--;
-                
-                const mins = Math.floor(gameState.countdownSeconds / 60);
-                const secs = gameState.countdownSeconds % 60;
-                document.getElementById('countdownTimer').textContent = 
-                    `${mins}:${secs.toString().padStart(2, '0')}`;
-
-                if (gameState.countdownSeconds <= 0) {
-                    clearInterval(countdownInterval);
-                    startHunting();
-                }
-            }, 1000);
-        }
-
-        // Start Hunting Phase
-        function startHunting() {
-            document.getElementById('countdownPhase').classList.add('hidden');
-            
-            if (gameState.currentUser.id === gameState.hunter.id) {
-                document.getElementById('hunterPhase').classList.remove('hidden');
-                startProximityTracking();
-            } else {
-                document.getElementById('hiderPhase').classList.remove('hidden');
-            }
-        }
-
-        // Calculate Distance (Haversine)
-        function calculateDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371e3;
-            const φ1 = lat1 * Math.PI / 180;
-            const φ2 = lat2 * Math.PI / 180;
-            const Δφ = (lat2 - lat1) * Math.PI / 180;
-            const Δλ = (lng2 - lng1) * Math.PI / 180;
-
-            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-                    Math.cos(φ1) * Math.cos(φ2) *
-                    Math.sin(Δλ/2) * Math.sin(Δλ/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-            return R * c;
-        }
-
-        // Get Closest Player Distance
-        function getClosestDistance() {
-            const hunterLoc = gameState.playerLocations[gameState.hunter.id];
-            if (!hunterLoc) return null;
-
-            let minDistance = Infinity;
-
-            gameState.gameGroup.players.forEach(player => {
-                if (player.id !== gameState.hunter.id) {
-                    const playerLoc = gameState.playerLocations[player.id];
-                    if (playerLoc) {
-                        const distance = calculateDistance(
-                            hunterLoc.lat, hunterLoc.lng,
-                            playerLoc.lat, playerLoc.lng
-                        );
-                        minDistance = Math.min(minDistance, distance);
-                    }
-                }
-            });
-
-            return minDistance === Infinity ? null : minDistance;
-        }
-
-        // Play Beep
-        function playBeep(frequency, duration, volume) {
-            const oscillator = gameState.audioContext.createOscillator();
-            const gainNode = gameState.audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(gameState.audioContext.destination);
-            
-            oscillator.frequency.value = frequency;
-            gainNode.gain.value = volume;
-            
-            oscillator.start();
-            setTimeout(() => oscillator.stop(), duration);
-        }
-
-        // Animate Beep Dots
-        function animateBeepDots(interval) {
-            const dots = document.querySelectorAll('.beep-dot');
-            let currentDot = 0;
-            
-            return setInterval(() => {
-                dots.forEach(dot => dot.classList.remove('active'));
-                dots[currentDot].classList.add('active');
-                currentDot = (currentDot + 1) % dots.length;
-            }, interval / 4);
-        }
-
-        // Start Proximity Tracking
-        function startProximityTracking() {
-            const updateProximity = () => {
-                const distance = getClosestDistance();
-                
-                if (distance === null) {
-                    document.getElementById('proximityDistance').textContent = '---';
-                    document.getElementById('proximityStatus').textContent = 'No signal';
-                    return;
-                }
-
-                document.getElementById('proximityDistance').textContent = Math.round(distance) + 'm';
-
-                let interval, volume, frequency, beepDuration, status;
-
-                if (distance < 10) {
-                    status = 'Very Close!';
-                    if (!gameState.oscillator) {
-                        gameState.oscillator = gameState.audioContext.createOscillator();
-                        const gainNode = gameState.audioContext.createGain();
-                        gameState.oscillator.connect(gainNode);
-                        gainNode.connect(gameState.audioContext.destination);
-                        gameState.oscillator.frequency.value = 800;
-                        gainNode.gain.value = 0.3;
-                        gameState.oscillator.start();
-
-                        const dots = document.querySelectorAll('.beep-dot');
-                        gameState.beepInterval = setInterval(() => {
-                            dots.forEach(dot => dot.classList.toggle('active'));
-                        }, 200);
-                    }
-                } else {
-                    if (gameState.oscillator) {
-                        gameState.oscillator.stop();
-                        gameState.oscillator = null;
-                        if (gameState.beepInterval) {
-                            clearInterval(gameState.beepInterval);
-                            gameState.beepInterval = null;
-                        }
-                    }
-
-                    if (distance >= 100) {
-                        interval = 3000;
-                        volume = 0.15;
-                        frequency = 400;
-                        beepDuration = 100;
-                        status = 'Far Away';
-                    } else if (distance >= 50) {
-                        interval = 1500;
-                        volume = 0.25;
-                        frequency = 500;
-                        beepDuration = 150;
-                        status = 'Getting Closer';
-                    } else {
-                        interval = 500;
-                        volume = 0.35;
-                        frequency = 700;
-                        beepDuration = 200;
-                        status = 'Close!';
-                    }
-
-                    document.getElementById('proximityStatus').textContent = status;
-
-                    if (gameState.beepInterval) {
-                        clearInterval(gameState.beepInterval);
-                    }
-
-                    playBeep(frequency, beepDuration, volume);
-                    gameState.beepInterval = setInterval(() => {
-                        playBeep(frequency, beepDuration, volume);
-                    }, interval);
-
-                    const dotInterval = animateBeepDots(interval);
-                    setTimeout(() => clearInterval(dotInterval), interval - 50);
-                }
-            };
-
-            updateProximity();
-            setInterval(updateProximity, 3000);
-        }
-
-        // End Game
-        function endGame() {
-            if (confirm('End the game for everyone?')) {
-                stopAllSounds();
-                alert('Game ended by ' + gameState.currentUser.username);
-                gameState.isGameActive = false;
-                resetGame();
-            }
-        }
-
-        // Reset Game
-        function resetGame() {
-            stopAllSounds();
-            gameState.hunter = null;
-            gameState.isGameActive = false;
-            gameState.countdownSeconds = 0;
-            
-            switchScreen('gameScreen', 'lobbyScreen');
-            document.getElementById('hunterSelection').classList.remove('hidden');
-            document.getElementById('gameControls').classList.add('hidden');
-            document.getElementById('countdownPhase').classList.add('hidden');
-            document.getElementById('hunterPhase').classList.add('hidden');
-            document.getElementById('hiderPhase').classList.add('hidden');
-            
-            updatePlayersList();
-        }
-
-        // Stop All Sounds
-        function stopAllSounds() {
-            if (gameState.beepInterval) {
-                clearInterval(gameState.beepInterval);
-                gameState.beepInterval = null;
-            }
-            if (gameState.oscillator) {
-                gameState.oscillator.stop();
-                gameState.oscillator = null;
-            }
-            document.querySelectorAll('.beep-dot').forEach(dot => {
-                dot.classList.remove('active');
-            });
-        }
-
-        // Switch Screen
-        function switchScreen(fromId, toId) {
-            document.getElementById(fromId).classList.add('hidden');
-            document.getElementById(toId).classList.remove('hidden');
-        }
-
-        // Cleanup on unload
-        window.addEventListener('beforeunload', () => {
-            if (gameState.watchId) {
-                navigator.geolocation.clearWatch(gameState.watchId);
-            }
-            stopAllSounds();
-            if (gameState.audioContext) {
-                gameState.audioContext.close();
-            }
-        });
-    </script>
+  // Init
+  wsConnect(); // will retry if unavailable
+  show('view-consent');
+   </script>
 </body>
-</html>
