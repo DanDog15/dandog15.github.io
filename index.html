@@ -1,5 +1,47 @@
 
 <!doctype html>
+<!--
+================================================================================
+Hide and Beep (Client)
+--------------------------------------------------------------------------------
+A mobile-first, browser-based outdoor multiplayer game inspired by hide-and-seek.
+
+Gameplay summary
+- Players join a shared room (identified by a 6-character code).
+- One player is designated the HUNTER; the rest are HIDERS.
+- HIDERS get a head-start ("Hiding time") to move away and hide.
+- During the HUNT phase, the HUNTER receives proximity feedback via:
+    - a distance readout (meters) to the nearest hider
+    - a meter bar
+    - audio beeps whose interval decreases as distance decreases
+- The game ends when:
+    - The hunter gets within ≤ 5 meters (auto-found), or
+    - The hunter presses Tag (manual found), or
+    - The host ends the game.
+
+Important permissions and device requirements
+- Location (GPS) access is mandatory for all players.
+- Audio output is required for hunter beeps; vibration is optional.
+- Best results outdoors with clear sky; accuracy > 50m pauses beeps.
+
+Networking model (WebSocket)
+- This client is written to use a WebSocket backend (WS_URL).
+- In the current demo state, UI is usable without a backend:
+    - simulateLocalCreate() generates a local room and player list
+    - WebSocket messages are still sent but will be ignored if disconnected
+
+File contents
+- HTML: App screens (consent, home, create, join, lobby, countdown, hunt, end)
+- CSS : Dark theme + reusable UI components (panels, buttons, badges)
+- JS  : State management, GPS, distance/beep logic, basic spoof detection,
+        wake lock handling, and WebSocket message handling.
+
+Safety / privacy note
+- Locations are intended to be shared only within the current game room.
+- This client does not persist location data; storage is backend-dependent.
+
+================================================================================
+-->
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -68,6 +110,18 @@
       <div class="brand">🔊 Hide and Beep</div>
       <div id="connStatus" class="status-pill">WS: <span class="danger">Disconnected</span></div>
     </header>
+ <!--
+    ============================================================================
+    CONSENT / PERMISSIONS VIEW
+    ----------------------------------------------------------------------------
+    Purpose:
+    - Explain what permissions are needed (Location + Audio) and why.
+    - Ensure the first user gesture unlocks audio playback in mobile browsers.
+    Notes:
+    - AudioContext creation typically requires a user interaction.
+    - Location permission is requested when geolocation.watchPosition starts.
+    ============================================================================
+    -->
 
     <!-- CONSENT -->
     <section id="view-consent" class="panel">
@@ -81,6 +135,17 @@
       <div id="permMsg" class="callout hidden"></div>
     </section>
 
+    <!--
+    ============================================================================
+    HOME VIEW
+    ----------------------------------------------------------------------------
+    Entry point after the user agrees to permissions.
+    Allows the player to:
+    - Create a new game room
+    - Join an existing room by code
+    ============================================================================
+    -->
+
     <!-- HOME -->
     <section id="view-home" class="panel hidden">
       <h2>Start</h2>
@@ -90,6 +155,15 @@
       </div>
       <p class="callout">Audio will start after your first tap. Best played outdoors with clear sky for GPS.</p>
     </section>
+<!--
+    ============================================================================
+    CREATE GAME VIEW
+    ----------------------------------------------------------------------------
+    Collects a display name and creates a new room.
+    In the current demo version, room creation is simulated locally until a
+    WebSocket backend is connected (simulateLocalCreate()).
+    ============================================================================
+    -->
 
     <!-- CREATE -->
     <section id="view-create" class="panel hidden">
@@ -104,6 +178,16 @@
         </div>
       </div>
     </section>
+  <!--
+    ============================================================================
+    JOIN GAME VIEW
+    ----------------------------------------------------------------------------
+    Collects:
+    - Display name
+    - 6-character room code (e.g., ABC123)
+    In the current demo version, join is simulated locally if backend is absent.
+    ============================================================================
+    -->
 
     <!-- JOIN -->
     <section id="view-join" class="panel hidden">
@@ -121,6 +205,17 @@
         </div>
       </div>
     </section>
+ <!--
+    ============================================================================
+    LOBBY VIEW
+    ----------------------------------------------------------------------------
+    Host controls:
+    - Share room code
+    - Choose hiding time (head start)
+    - Select the Hunter
+    From here the host starts the game, transitioning players into countdown.
+    ============================================================================
+    -->
 
     <!-- LOBBY -->
     <section id="view-lobby" class="panel hidden">
@@ -151,6 +246,14 @@
         <button class="btn btn-danger" id="btnLeaveLobby">Leave</button>
       </div>
     </section>
+ <!--
+    ============================================================================
+    COUNTDOWN (HIDING) VIEW
+    ----------------------------------------------------------------------------
+    The hiding phase gives hiders time to move away and hide.
+    When the countdown hits 0, the client transitions to the hunt view.
+    ============================================================================
+    -->
 
     <!-- COUNTDOWN -->
     <section id="view-countdown" class="panel hidden">
@@ -161,6 +264,18 @@
         <button id="btnCancelStart" class="btn">Cancel</button>
       </div>
     </section>
+<!--
+    ============================================================================
+    HUNT VIEW
+    ----------------------------------------------------------------------------
+    The active gameplay screen.
+    Hunter:
+    - sees nearest distance to any hider
+    - receives proximity beeps (interval mapped from distance)
+    Hider:
+    - sees role and GPS status but no proximity cues
+    ============================================================================
+    -->
 
     <!-- HUNT -->
     <section id="view-hunt" class="panel hidden">
@@ -186,6 +301,15 @@
         <button id="btnEndGame" class="btn btn-danger">End Game</button>
       </div>
     </section>
+<!--
+    ============================================================================
+    END VIEW (GAME OVER)
+    ----------------------------------------------------------------------------
+    Shows end-of-game summary and provides:
+    - Rematch (returns to lobby state)
+    - Exit (returns to home state)
+    ============================================================================
+    -->
 
     <!-- END -->
     <section id="view-end" class="panel hidden">
