@@ -353,7 +353,9 @@ Safety / privacy note
   // App State
   // =========================
   const app = {
-    view: 'consent', // consent|home|create|join|lobby|countdown|hunt|end
+    view: 'consent', 
+    // Current visible view/screen in the single-page UI
+    // consent|home|create|join|lobby|countdown|hunt|end
     me: { id: null, name: '', role: 'hider' }, // role: 'hunter' | 'hider'
     room: { code: null, players: [] },
     hideSeconds: 60,
@@ -460,6 +462,8 @@ Safety / privacy note
   }
 
   function beep(durationMs=BEEP_MS, freq=AUDIO_FREQ_HZ) {
+    // Emits a short sine-wave beep plus optional vibration.
+    // Frequency and duration are fixed by constants for consistent feedback.
     if (!audioCtx) return;
     const now = audioCtx.currentTime;
     const o = audioCtx.createOscillator();
@@ -586,6 +590,8 @@ Safety / privacy note
   // GPS Handling
   // =========================
   function startGeo() {
+ // Begins continuous GPS tracking using watchPosition.
+ // Uses high accuracy mode; a short maximumAge keeps fixes fresh.
     if (!('geolocation' in navigator)) {
       warn('Geolocation not supported.');
       setBadge('#gpsStatus','Unsupported','danger');
@@ -606,6 +612,13 @@ Safety / privacy note
   }
 
   function onGeo(pos) {
+    // Called on each GPS update.
+    // Responsibilities:
+    // - Store fix history and compute smoothed fix
+    // - Gate gameplay on accuracy (pause beeps if accuracy is poor)
+    // - Run spoof detection heuristics
+    // - Broadcast position to the server
+    // - If hunter: compute nearest distance and map to beep interval
     const { latitude:lat, longitude:lon, accuracy } = pos.coords;
     const ts = pos.timestamp || Date.now();
     const fix = { lat, lon, acc: accuracy, ts };
@@ -664,6 +677,9 @@ Safety / privacy note
   }
 
   function nearestDistanceMeters() {
+    // Computes the smallest distance from 'me' to any other player's last known
+    // position. Hunter feedback uses this nearest value.
+
     const me = app.lastGoodFix;
     if (!me) return null;
     let best = null;
@@ -766,7 +782,11 @@ Safety / privacy note
   });
 
   function startUpdateLoop() {
-    // show/hide hunter controls
+    // Starts the main 1-second loop (UPDATE_INTERVAL_MS).
+    // This loop drives:
+    // - countdown display
+    // - periodic position broadcast (smoothed)
+    // - auto-found detection when hunter is very close
     $('#hunterControls').classList.toggle('hidden', !app.roleIsHunter());
     startGeo();
     requestWakeLock();
@@ -820,6 +840,8 @@ Safety / privacy note
   }
 
   function clearHunt() {
+     // Resets hunt-specific runtime state (GPS watcher, beep timers, caches).
+    // Called when ending a game or leaving a room.
     if (app.beepTimer) { clearInterval(app.beepTimer); app.beepTimer = null; }
     if (app.geoWatchId) { navigator.geolocation.clearWatch(app.geoWatchId); app.geoWatchId = null; }
     app.lastFixes = [];
@@ -831,6 +853,8 @@ Safety / privacy note
   }
 
   function resetToHome() {
+    // Returns to initial playable state after leaving a room.
+    // Clears hunt state and room data.
     clearHunt();
     app.room = { code: null, players: [] };
     app.me.role = 'hider';
