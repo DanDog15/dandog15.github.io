@@ -338,6 +338,8 @@ Safety / privacy note
   const BEEP_MS = 200;
 
   // 5-step thresholds (meters -> interval ms)
+  // Converts a distance into an audio beep
+  // Smaller interval =>faster beeps => closer to hider
   function intervalForDistance(m) {
     const d = Math.min(m, DIST_CAP_FOR_BEEP);
     if (d >= 500) return 1500;
@@ -375,6 +377,8 @@ Safety / privacy note
   // =========================
   function $(sel) { return document.querySelector(sel); }
   function show(id) { document.querySelectorAll('section').forEach(s => s.id === id ? s.classList.remove('hidden') : s.classList.add('hidden')); app.view = id.replace('view-', ''); }
+  // UI router: show exactly one <section> by id (e.g., 'view-home')
+  // and hide all others.
   function setText(id, v) { const el = $(id); if (el) el.textContent = v; }
   function setBadge(id, v, cls) {
     const el = $(id);
@@ -386,6 +390,8 @@ Safety / privacy note
   function codeGen(){ const a='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<6;i++) s += a[Math.floor(Math.random()*a.length)]; return s; }
 
   // Haversine distance in meters
+  // Computes great-circle distance between two GPS coordinates.
+  // This is more accurate than simple planar approximations for real-world use.
   function haversine(lat1, lon1, lat2, lon2) {
     const R = 6371000;
     const toRad = d => d*Math.PI/180;
@@ -396,6 +402,9 @@ Safety / privacy note
   }
 
   // Basic smoothing (last 3 fixes)
+  // Reduces jitter by averaging the last few GPS fixes.
+  // Note: This is a simple mean filter; more advanced approaches could use
+  // a Kalman filter or accuracy-weighted smoothing.
   function smoothedFix() {
     if (app.lastFixes.length === 0) return null;
     const arr = app.lastFixes.slice(-3);
@@ -406,6 +415,12 @@ Safety / privacy note
   }
 
   // Spoof detection: high speed (> 60 km/h) or huge jump (> 200 m) between 1s ticks
+  // Purpose:
+  // - Discourage GPS spoofing or unrealistic movement that breaks gameplay.
+  // - If flagged, beeps are paused and a warning is displayed.
+  // Heuristics:
+  // - Jump > 200m within ~1s, OR speed > 60 km/h.
+
   function spoofCheck(prev, curr) {
     if (!prev || !curr) return false;
     const d = haversine(prev.lat, prev.lon, curr.lat, curr.lon);
@@ -425,6 +440,9 @@ Safety / privacy note
   // =========================
   let audioCtx = null;
   function unlockAudio() {
+  // Mobile browsers often require a user gesture before audio can play.
+  // This function creates an AudioContext and plays a near-silent tick to
+  // satisfy gesture policies, enabling later beeps.
     if (app.audioUnlocked) return;
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -460,6 +478,8 @@ Safety / privacy note
   }
 
   function setBeepInterval(ms) {
+   // Reconfigures the repeating beep timer.
+   // We clear and recreate the interval whenever the distance band changes.
     setText('#beepInterval', ms);
     if (app.beepTimer) { clearInterval(app.beepTimer); app.beepTimer = null; }
     app.lastBeepInterval = ms;
